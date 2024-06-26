@@ -15,7 +15,7 @@ conditionally rather than doing some long ass if-else chain
 obligatory wikipedia article
 https://en.wikipedia.org/wiki/Monad_(functional_programming)
 
-For example, Result
+For example, `Result`
 
 ```rs
 enum Result<T,E> {
@@ -81,6 +81,39 @@ match opt {
 As you can see, we can handle nullable types without even actually
 using nulls, which is a good thing because null references were a mistake
 
+
+A note: Monads *must* return the same type as it's initially wrapped in, so you can't have a monad of `Result` that returns an `Option` or vice versa, unless you use `map` to... map the values to an another type.
+
+For example, Let's say we got a `Result` that returns a `String`.
+
+```rs
+Result<String, String>
+```
+
+If we want to get the data of the `Result`, you must unwrap or map it first.
+```rs
+let result = Result::Ok("Hello, world!".to_string());
+let result_data = result.unwrap(); // This will panic if the result is an error
+```
+
+But we can also use `map` to transform the data.
+
+Hell, Rust has a helper for this called `ok()` that will return the data if it's an `Ok` variant, or `None` if it's an `Err` variant.
+
+```rs
+let result = Result::Ok("Hello, world!".to_string());
+let result_data: Option<String> = result.ok(); // This will return Some("Hello, world!") if it's an Ok variant, or None if it's an Err variant
+```
+
+Map is just a function that lets you declaratively work on data inside monads without have to unwrap them first.
+
+```rs
+let result = Result::Ok("Hello, world!".to_string());
+let result_data = result.map(|x| x.to_uppercase()); // This will return an Ok variant with the data transformed to uppercase *if* it's an Ok variant, otherwise it will just return the Err variant
+```
+https://doc.rust-lang.org/std/iter/struct.Map.html
+
+
 ## Higher Order Functions
 
 Higher order functions are functions that can take more functions as arguments.
@@ -130,10 +163,38 @@ let doubled_evens = vec.iter()
     .collect::<Vec<i32>>();
 ```
 
+See how we're chaining functions together to build up the data we want to work with? While for some of you this may be confusing at first, just treat it like how you would declare a function in math, you just declare what operation you want to do with the data and then evaluate it at the end.
+
+But in something like imperative JavaScript, it would look like this:
+
+```js
+let numbers = [1, 2, 3, 4, 5];
+for (let i = 0; i < numbers.length; i++) {
+    numbers[i] = numbers[i] * 2;
+}
+```
+
+Or even imperative Rust:
+
+```rs
+let mut numbers = vec![1, 2, 3, 4, 5];
+for i in 0..numbers.len() {
+    numbers[i] = numbers[i] * 2;
+}
+
+// or...
+// 
+for i in numbers.iter_mut() {
+    *i = *i * 2; // see how we're literally just modifying each entry step by step
+}
+```
+
+Note how we have to modify the value in place, instead of just mapping them, which now means we have to modify the original data. In this example it's not a big deal, but in more complex applications like doing a very complex transformation on a large dataset, it can be a pain to debug and maintain.
+
 
 ## Closures/Lambdas/Anonymous Functions
 
-Now you wonder: the HOF example above used a closure, what is a closure?
+Now you wonder: the HOF example above used a closure (`|x|`), what is a closure?
 
 Closures are essentially lambda/anonymous functions that can capture variables from the scope they are defined in. The `map()` function above is a HOF that takes a function type of `FnMut(T)` where `T` is the type of the elements in the iterator.
 
