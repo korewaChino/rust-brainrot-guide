@@ -6,6 +6,8 @@ It's not meant to be actually read in a professional setting, so if youre here t
 
 It also serves as a crash course on functional programming concepts, with Rust examples as the language of choice.
 
+If you would like me to explain something in a more detailed manner, please open an issue or a PR, and I'll be happy to add more content in this document.
+
 ## Monads
 
 Monads are this kind of funny functional programming concept that wraps
@@ -236,6 +238,38 @@ So you ask: where did `x` come from?
 
 x comes from the fact that the iterator, well, iterates over each element in the function, and the parameter here is actually a positional argument that the closure takes, so you can actually name it whatever you want
 
+### Bonus: function reference in... a Fn closure type?
+
+While you may think, "do I have to always write out a closure every time I want to use a HOF?" The answer is actually no! You can actually reference a named function in a closure, and Rust will just call that instead! As long as the return type and positional arguments match, you can just reference a function instead of writing a new closure every time.
+
+```rs
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+let vec = vec![1, 2, 3, 4, 5];
+
+let doubled = vec.iter()
+    .map(double) // Reference the function instead of writing a closure
+    .collect::<Vec<i32>>();
+
+assert_eq!(doubled, vec![2, 4, 6, 8, 10]);
+
+// And optionally, instead of positional args you can declare the specific type and argument names too
+
+fn add(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+let vec = vec![1, 2, 3, 4, 5];
+
+let summed = vec.iter()
+    .map(|number| add(number, 5)) // Reference the function instead of writing a closure
+    .collect::<Vec<i32>>();
+
+assert_eq!(summed, vec![6, 7, 8, 9, 10]);
+
+```
 
 ## Iterators
 
